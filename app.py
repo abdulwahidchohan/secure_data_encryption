@@ -3,9 +3,9 @@ import hashlib
 from cryptography.fernet import Fernet
 import time
 
-# Initialize session state
+# Initialize session state with emoji-prefixed pages
 if 'page' not in st.session_state:
-    st.session_state.page = "Home"
+    st.session_state.page = "🏠 Home"
 if 'failed_attempts' not in st.session_state:
     st.session_state.failed_attempts = 0
 if 'stored_data' not in st.session_state:
@@ -42,11 +42,13 @@ st.title("🔒 Secure Data Encryption System")
 
 # Sidebar Navigation
 menu = ["🏠 Home", "📂 Store Data", "🔍 Retrieve Data", "🗃️ Manage Data", "🔑 Login"]
+if st.session_state.page not in menu:
+    st.session_state.page = menu[0]
 choice = st.sidebar.selectbox("Navigation", menu, index=menu.index(st.session_state.page))
-st.session_state.page = choice.split(" ", 1)[1]  # Remove emoji for internal use
+st.session_state.page = choice
 
 # Home Page
-if st.session_state.page == "Home":
+if st.session_state.page == "🏠 Home":
     st.subheader("🏠 Welcome to the Secure Data System")
     st.write("Easily store and retrieve encrypted data with this secure app!")
     st.markdown("""
@@ -59,7 +61,7 @@ if st.session_state.page == "Home":
         st.write("Data is encrypted using Fernet encryption and stored with a hashed passkey for security.")
 
 # Store Data Page
-elif st.session_state.page == "Store Data":
+elif st.session_state.page == "📂 Store Data":
     st.subheader("📂 Store Data Securely")
     label = st.text_input("Enter Label for Data:", help="A name to identify your data.")
     user_data = st.text_area("Enter Data:", help="The information you want to encrypt.")
@@ -81,7 +83,7 @@ elif st.session_state.page == "Store Data":
             st.error("⚠️ Label and passkey are required, and passkey must be at least 8 characters.")
 
 # Retrieve Data Page
-elif st.session_state.page == "Retrieve Data":
+elif st.session_state.page == "🔍 Retrieve Data":
     st.subheader("🔍 Retrieve Your Data")
     if st.session_state.stored_data:
         selected_id = st.selectbox(
@@ -105,8 +107,8 @@ elif st.session_state.page == "Retrieve Data":
                     if st.session_state.failed_attempts >= 3:
                         st.warning("🔒 Too many failed attempts! Redirecting to Login...")
                         time.sleep(1)
-                        st.session_state.page = "Login"
-                        st.experimental_rerun()
+                        st.session_state.page = "🔑 Login"
+                        st.rerun()
             else:
                 st.error("⚠️ Passkey is required!")
     else:
@@ -115,7 +117,7 @@ elif st.session_state.page == "Retrieve Data":
         st.write("For this demo, there’s no recovery option. Use the correct passkey or store new data.")
 
 # Manage Data Page
-elif st.session_state.page == "Manage Data":
+elif st.session_state.page == "🗃️ Manage Data":
     st.subheader("🗃️ Manage Stored Data")
     if st.session_state.stored_data:
         for id, item in list(st.session_state.stored_data.items()):
@@ -123,7 +125,7 @@ elif st.session_state.page == "Manage Data":
             col1.write(f"Label: {item['label']}")
             if col2.button("Delete", key=f"delete_{id}"):
                 del st.session_state.stored_data[id]
-                st.experimental_rerun()
+                st.rerun()
         if st.button("Clear All Data"):
             st.session_state.clear_all = True
         if st.session_state.clear_all:
@@ -131,12 +133,12 @@ elif st.session_state.page == "Manage Data":
                 st.session_state.stored_data = {}
                 st.session_state.clear_all = False
                 st.success("🗑️ All data cleared successfully!")
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.info("📭 No data stored yet.")
 
 # Login Page
-elif st.session_state.page == "Login":
+elif st.session_state.page == "🔑 Login":
     st.subheader("🔑 Reauthorization Required")
     st.write("Too many failed attempts detected. Please reauthorize.")
     login_pass = st.text_input("Enter Master Password:", type="password", help="Demo password: admin123")
@@ -146,7 +148,7 @@ elif st.session_state.page == "Login":
             st.session_state.failed_attempts = 0
             st.success("✅ Reauthorized! Redirecting to Retrieve Data...")
             time.sleep(1)
-            st.session_state.page = "Retrieve Data"
-            st.experimental_rerun()
+            st.session_state.page = "🔍 Retrieve Data"
+            st.rerun()
         else:
             st.error("❌ Incorrect password!")
